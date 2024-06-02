@@ -72,7 +72,7 @@ function disable() {
 }
 
 function updateProgress() {
-    progress += 10;
+    progress += 1;
     if (progress > 100) progress = 0;
     
     // Update the width of the progress bar fill
