@@ -1,0 +1,21 @@
+.progress-bar-container {
+    width: 100px; /* Adjust the width as needed */
+    height: 20px;
+    background-color: #ccc; /* Background color for the progress bar container */
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #000; /* Optional: to make the border more visible */
+}
+
+.progress-bar-fill {
+    background-color: red; /* Color of the progress bar fill */
+    color: red;
+    width: 0;
+    border-radius: 10px;
+    height: 100%;
+    transition: width 0.5s; /* Smooth transition for the width change */
+}
+
+.progress-label {
+    padding-left: 10px; /* Space between the bar and the label */
+}

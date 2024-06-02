@@ -1,0 +1,12 @@
+{
+    "uuid": "progress-bar@example.com",
+    "name": "Progress Bar",
+    "description": "A simple progress bar in the top panel",
+    "shell-version": [
+        "3.36",
+        "3.38",
+        "40",
+        "41"
+    ],
+    "version": 1
+}
