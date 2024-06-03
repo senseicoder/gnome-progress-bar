@@ -57,6 +57,13 @@ function enable() {
     });
     progressBar.menu.addMenuItem(resetMenuItem);
 
+    // Add a menu item to reset the progress
+    let resetMenuItem2 = new PopupMenu.PopupMenuItem('Set one hour');
+    resetMenuItem2.connect('activate', () => {
+        setOneHour();
+    });
+    progressBar.menu.addMenuItem(resetMenuItem2);
+
     // Simulate progress update
     GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
         updateProgress();
@@ -91,5 +98,10 @@ function updateProgress() {
 
 function resetProgress() {
     progress = 0;
+    updateProgress();
+}
+
+function setOneHour() {
+    progress = 50;
     updateProgress();
 }
