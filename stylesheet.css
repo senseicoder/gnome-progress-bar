@@ -1,32 +1,42 @@
-.progress-bar-container {
-    width: 200px; /* Adjust the width as needed */
-    height: 20px;
+.progress-bar-container-period {
+    width: 300px; /* Adjust the width as needed */
+    height: 10px; /* Adjust the height as needed */
     background-color: #ccc; /* Background color for the progress bar container */
     border-radius: 10px;
     overflow: hidden;
     border: 1px solid #000; /* Optional: to make the border more visible */
 }
 
-.progress-bar-fill {
-    background-color: red; /* Color of the progress bar fill */
-    color: red;
+.progress-bar-fill-period {
+    background-color: #ff0000; /* Red color for the period progress bar fill */
     width: 0;
-    border-radius: 10px;
-    height: 50%;
-    overflow: hidden;
+    height: 100%;
     transition: width 0.5s; /* Smooth transition for the width change */
+}
+
+.progress-bar-container-day {
+    width: 200px; /* Adjust the width as needed */
+    height: 10px; /* Adjust the height as needed */
+    background-color: #ccc; /* Background color for the progress bar container */
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #000; /* Optional: to make the border more visible */
 }
 
 .progress-bar-fill-day {
-    background-color: blue; /* Color of the progress bar fill */
-    color: red;
+    background-color: #0000ff; /* Blue color for the day progress bar fill */
     width: 0;
-    border-radius: 10px;
-    height: 50%;
-    overflow: hidden;
+    height: 100%;
     transition: width 0.5s; /* Smooth transition for the width change */
 }
 
-.progress-label {
-    padding-left: 10px; /* Space between the bar and the label */
+.progress-box {
+    spacing: 0px; /* Remove space between the two progress bars */
+}
+
+.tooltip {
+    background-color: #333;
+    color: #fff;
+    padding: 5px;
+    border-radius: 5px;
 }
