@@ -34,9 +34,7 @@
     spacing: 0px; /* Remove space between the two progress bars */
 }
 
-.tooltip {
-    background-color: #333;
-    color: #fff;
-    padding: 5px;
-    border-radius: 5px;
+.progress-label {
+    font-size: 10px; /* Adjust the font size as needed */
+    padding-left: 10px; /* Optional: Add some space between the bar and the label */
 }

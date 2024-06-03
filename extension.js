@@ -3,8 +3,8 @@ const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 
-let progressBar, progressContainerPeriod, progressBarFillPeriod, tooltipPeriod, labelPeriod;
-let progressContainerDay, progressBarFillDay, tooltipDay, labelDay;
+let progressBar, progressContainerPeriod, progressBarFillPeriod, labelPeriod;
+let progressContainerDay, progressBarFillDay, labelDay;
 let tsBeginDay, tsEndDay;
 
 function init() {}
@@ -34,24 +34,10 @@ function enable() {
 
     // Create a label for the period progress bar
     labelPeriod = new St.Label({
+        style_class: 'progress-label',
         text: '',
         y_expand: true,
         y_align: Clutter.ActorAlign.CENTER
-    });
-
-    // Create a tooltip for the period progress bar
-    tooltipPeriod = new St.Label({
-        style_class: 'tooltip',
-        text: '',
-        visible: false
-    });
-    Main.uiGroup.add_actor(tooltipPeriod);
-
-    progressContainerPeriod.connect('enter-event', () => tooltipPeriod.show());
-    progressContainerPeriod.connect('leave-event', () => tooltipPeriod.hide());
-    progressContainerPeriod.connect('motion-event', (actor, event) => {
-        let [x, y] = event.get_coords();
-        tooltipPeriod.set_position(x + 10, y + 10);
     });
 
     // Create a container for the day progress bar (blue)
@@ -75,24 +61,10 @@ function enable() {
 
     // Create a label for the day progress bar
     labelDay = new St.Label({
+        style_class: 'progress-label',
         text: '',
         y_expand: true,
         y_align: Clutter.ActorAlign.CENTER
-    });
-
-    // Create a tooltip for the day progress bar
-    tooltipDay = new St.Label({
-        style_class: 'tooltip',
-        text: '',
-        visible: false
-    });
-    Main.uiGroup.add_actor(tooltipDay);
-
-    progressContainerDay.connect('enter-event', () => tooltipDay.show());
-    progressContainerDay.connect('leave-event', () => tooltipDay.hide());
-    progressContainerDay.connect('motion-event', (actor, event) => {
-        let [x, y] = event.get_coords();
-        tooltipDay.set_position(x + 10, y + 10);
     });
 
     // Create a box to hold both progress bars and their labels
@@ -128,14 +100,6 @@ function disable() {
         progressBar.destroy();
         progressBar = null;
     }
-    if (tooltipPeriod) {
-        tooltipPeriod.destroy();
-        tooltipPeriod = null;
-    }
-    if (tooltipDay) {
-        tooltipDay.destroy();
-        tooltipDay = null;
-    }
 }
 
 function initializeDayTimer() {
@@ -164,7 +128,6 @@ function updateProgress() {
     // Calculate remaining minutes for the period
     let remainingSecondsPeriod = 1800 - (elapsedPeriod - periodStart);
     let remainingMinutesPeriod = Math.floor(remainingSecondsPeriod / 60);
-    tooltipPeriod.set_text(`Temps restant: ${remainingMinutesPeriod} minutes`);
     labelPeriod.set_text(`${remainingMinutesPeriod}mn`);
     //log(`Period progress: ${percentagePeriod}% - Reste ${remainingMinutesPeriod} minutes`);
 
@@ -181,7 +144,6 @@ function updateProgress() {
     let remainingTimeDay = totalDay - elapsedDay;
     let remainingHoursDay = Math.floor(remainingTimeDay / 3600000);
     let remainingMinutesDay = Math.floor((remainingTimeDay % 3600000) / 60000);
-    tooltipDay.set_text(`Temps écoulé: ${remainingHoursDay}h ${remainingMinutesDay}m`);
     labelDay.set_text(`${remainingHoursDay}h${remainingMinutesDay.toString().padStart(2, '0')}`);
     //log(`Day progress: ${percentageDay}% - Reste ${remainingHoursDay} heures et ${remainingMinutesDay} minutes`);
 }
