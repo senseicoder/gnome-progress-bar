@@ -4,8 +4,11 @@ const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const ExtensionUtils = imports.misc.extensionUtils;
 
-let progressBar, progressContainer, progressBarFill, progressLabel;
+let progressBar, progressContainer, progressBarFill, progressBarFillDay, progressLabel;
 let progress = 0;
+let max = 100;
+let tsBebin, tsEnd;
+let tsBebinDay, tsEndDay;
 
 function init() {}
 
@@ -29,20 +32,29 @@ function enable() {
         y_align: Clutter.ActorAlign.CENTER
     });
 
+    // Create the progress bar fill element
+    progressBarFillDay = new St.Widget({
+        style_class: 'progress-bar-fill-day',
+        x_expand: false, // Changed to false as we will control the width manually
+        y_expand: true,
+        y_align: Clutter.ActorAlign.CENTER
+    });
+
     // Create the progress label element
     progressLabel = new St.Label({
-        text: ' 0%',
+        text: '',
         y_expand: true,
         y_align: Clutter.ActorAlign.CENTER
     });
 
     // Add the fill element to the container
     progressContainer.add(progressBarFill);
+    progressContainer.add(progressBarFillDay);
 
     // Create a box to hold both the progress bar and the label
     let progressBox = new St.BoxLayout();
     progressBox.add(progressContainer);
-    // progressBox.add(progressLabel);
+    progressBox.add(progressLabel);
 
     // Add the box to the panel button
     progressBar.actor.add_child(progressBox);
@@ -80,17 +92,17 @@ function disable() {
 
 function updateProgress() {
     progress += 1;
-    if (progress > 100) progress = 0;
+    if (progress > max) progress = 0;
     
     // Update the width of the progress bar fill
-    let progressWidth = Math.round(progressContainer.width * (progress / 100));
-    // progressBarFill.set_width(progressWidth);
-    progressBarFill.set_size(progressWidth, progressContainer.height);
+    let progressWidth = Math.round(progressContainer.width * (progress / max));
+    progressBarFill.set_size(progressWidth, progressContainer.height / 2);
+    progressBarFillDay.set_size(progressWidth, progressContainer.height / 2);
     log(`Progress: ${progress}, Width: ${progressWidth}`);
     log(`progressContainer: ${progressContainer.width}, progressBarFill: ${progressBarFill.width}`);
     
     // Update the progress label
-    // progressLabel.set_text(' ' + progress + '%' + progressWidth);
+    progressLabel.set_text(' ' + progress + '%' + progressWidth);
 
     progressBarFill.set_style('background-color: red; width: ' + progressWidth + 'px;');
 
@@ -102,6 +114,7 @@ function resetProgress() {
 }
 
 function setOneHour() {
-    progress = 50;
+    max = 60 * 60;
+    progress = 0;
     updateProgress();
 }
