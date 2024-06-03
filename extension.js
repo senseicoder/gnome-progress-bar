@@ -85,6 +85,15 @@ function enable() {
     // Add the panel button to the status area
     Main.panel.addToStatusArea('progress-bars', progressBar);
 
+    let MenuItem;
+    dayPhases.forEach((phase) => {
+        MenuItem = new PopupMenu.PopupMenuItem('Set ' + phase);
+        MenuItem.connect('activate', () => {
+            initializeDayTimer(phase);
+        });
+        progressBar.menu.addMenuItem(MenuItem);
+    });
+
     // Initialize the progress update
     GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
         updateProgress();
@@ -92,7 +101,7 @@ function enable() {
     });
 
     // Initialize the day timer
-    initializeDayTimer();
+    initializeDayTimer('workday');
 }
 
 function disable() {
@@ -102,12 +111,23 @@ function disable() {
     }
 }
 
-function initializeDayTimer() {
+let dayPhases = ['workday', 'day', 'soiree'];
+let phaseTimes = {
+    'workday': { start: [9, 0], end: [17, 45] },
+    'day': { start: [6, 0], end: [23, 30] },
+    'soiree': { start: [18, 0], end: [23, 30] }
+};
+
+function initializeDayTimer(phase) {
+    if (!phaseTimes.hasOwnProperty(phase)) {
+        log('Invalid phase specified');
+        return;
+    }
+
     let now = new Date();
-    tsBeginDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0, 0); // Start at 9:00 AM
-    tsEndDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 17, 45, 0); // End at 5:45 PM
-    log(`Day timer initialized: ${tsBeginDay}`);
-    log(`Day timer ends: ${tsEndDay}`);
+    tsBeginDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), phaseTimes[phase].start[0], phaseTimes[phase].start[1], 0);
+    tsEndDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), phaseTimes[phase].end[0], phaseTimes[phase].end[1], 0);
+    log(`Timer initialized for ${phase}: Start at ${tsBeginDay}, End at ${tsEndDay}`);
 }
 
 function updateProgress() {
@@ -135,6 +155,7 @@ function updateProgress() {
     let elapsedDay = now - tsBeginDay;
     let totalDay = tsEndDay - tsBeginDay;
     let percentageDay = (elapsedDay / totalDay) * 100;
+    if (percentageDay > 100) percentageDay=100; 
 
     // Update the width of the day progress bar (blue)
     let progressWidthDay = Math.round(progressContainerDay.width * (percentageDay / 100));
@@ -144,6 +165,10 @@ function updateProgress() {
     let remainingTimeDay = totalDay - elapsedDay;
     let remainingHoursDay = Math.floor(remainingTimeDay / 3600000);
     let remainingMinutesDay = Math.floor((remainingTimeDay % 3600000) / 60000);
+    if (remainingHoursDay < 0) {
+        remainingHoursDay = 0;
+        remainingMinutesDay = 0;
+    }
     labelDay.set_text(`${remainingHoursDay}h${remainingMinutesDay.toString().padStart(2, '0')}`);
     //log(`Day progress: ${percentageDay}% - Reste ${remainingHoursDay} heures et ${remainingMinutesDay} minutes`);
 }
