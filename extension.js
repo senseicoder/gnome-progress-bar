@@ -141,6 +141,7 @@ function updateProgress() {
     let periodStart = Math.floor(elapsedPeriod / 1800) * 1800; // Nearest lower 30-minute mark
     let percentagePeriod = ((elapsedPeriod - periodStart) / 1800) * 100;
 
+
     // Update the width of the period progress bar (red)
     let progressWidthPeriod = Math.round(progressContainerPeriod.width * (percentagePeriod / 100));
     progressBarFillPeriod.set_size(progressWidthPeriod, progressContainerPeriod.height);
@@ -155,7 +156,7 @@ function updateProgress() {
     let elapsedDay = now - tsBeginDay;
     let totalDay = tsEndDay - tsBeginDay;
     let percentageDay = (elapsedDay / totalDay) * 100;
-    if (percentageDay > 100) percentageDay=100; 
+    if (percentageDay > 100) percentageDay = 100;
 
     // Update the width of the day progress bar (blue)
     let progressWidthDay = Math.round(progressContainerDay.width * (percentageDay / 100));
