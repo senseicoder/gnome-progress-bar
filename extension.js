@@ -160,6 +160,7 @@ function updateProgress() {
 
     // Update the width of the day progress bar (blue)
     let progressWidthDay = Math.round(progressContainerDay.width * (percentageDay / 100));
+    //log(`Day progress: ${percentageDay}% - progressWidthDay ${progressWidthDay}`);
     progressBarFillDay.set_size(progressWidthDay, progressContainerDay.height);
 
     // Update the tooltip for the day progress bar
