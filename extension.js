@@ -143,8 +143,14 @@ function updateProgress() {
 
 
     // Update the width of the period progress bar (red)
-    let progressWidthPeriod = Math.round(progressContainerPeriod.width * (percentagePeriod / 100));
-    progressBarFillPeriod.set_size(progressWidthPeriod, progressContainerPeriod.height);
+    if (progressContainerPeriod && progressBarFillPeriod) {
+        let width = progressContainerPeriod.width;
+        let height = progressContainerPeriod.height;
+        let progressWidthPeriod = Math.round(width * (percentagePeriod / 100));
+        progressBarFillPeriod.set_size(progressWidthPeriod, height);
+    }
+    //let progressWidthPeriod = Math.round(progressContainerPeriod.width * (percentagePeriod / 100));
+    //progressBarFillPeriod.set_size(progressWidthPeriod, progressContainerPeriod.height);
 
     // Calculate remaining minutes for the period
     let remainingSecondsPeriod = 1800 - (elapsedPeriod - periodStart);
@@ -159,9 +165,16 @@ function updateProgress() {
     if (percentageDay > 100) percentageDay = 100;
 
     // Update the width of the day progress bar (blue)
-    let progressWidthDay = Math.round(progressContainerDay.width * (percentageDay / 100));
-    //log(`Day progress: ${percentageDay}% - progressWidthDay ${progressWidthDay}`);
-    progressBarFillDay.set_size(progressWidthDay, progressContainerDay.height);
+    if (progressContainerDay && progressBarFillDay) {
+        let width = progressContainerDay.width;
+        let height = progressContainerDay.height;
+    
+        let progressWidthDay = Math.round(width * (percentageDay / 100));
+        progressBarFillDay.set_size(progressWidthDay, height);
+    }
+
+    //let progressWidthDay = Math.round(progressContainerDay.width * (percentageDay / 100));
+    //progressBarFillDay.set_size(progressWidthDay, progressContainerDay.height);
 
     // Update the tooltip for the day progress bar
     let remainingTimeDay = totalDay - elapsedDay;
