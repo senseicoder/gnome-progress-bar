@@ -6,14 +6,21 @@ const PopupMenu = imports.ui.popupMenu;
 let progressBar, progressContainerPeriod, progressBarFillPeriod, labelPeriod;
 let progressContainerDay, progressBarFillDay, labelDay;
 let tsBeginDay, tsEndDay;
+let updateTimeoutId = null;
+let currentPhase = 'workday';
+
+let dayPhases = ['workday', 'day', 'soiree'];
+let phaseTimes = {
+    'workday': { start: [9, 0], end: [17, 45], label: 'wk' },
+    'day':     { start: [6, 0], end: [23, 30], label: 'day' },
+    'soiree':  { start: [18, 0], end: [23, 30], label: 'soir' }
+};
 
 function init() {}
 
 function enable() {
-    // Create a panel button for the progress bars
     progressBar = new PanelMenu.Button(0.0, 'Progress Bars', false);
 
-    // Create a container for the period progress bar (red)
     progressContainerPeriod = new St.BoxLayout({
         style_class: 'progress-bar-container-period',
         x_expand: true,
@@ -21,7 +28,6 @@ function enable() {
         y_align: Clutter.ActorAlign.CENTER
     });
 
-    // Create the period progress bar fill element (red)
     progressBarFillPeriod = new St.Widget({
         style_class: 'progress-bar-fill-period',
         x_expand: false,
@@ -29,10 +35,8 @@ function enable() {
         y_align: Clutter.ActorAlign.CENTER
     });
 
-    // Add the fill element to the container
     progressContainerPeriod.add(progressBarFillPeriod);
 
-    // Create a label for the period progress bar
     labelPeriod = new St.Label({
         style_class: 'progress-label',
         text: '',
@@ -40,7 +44,6 @@ function enable() {
         y_align: Clutter.ActorAlign.CENTER
     });
 
-    // Create a container for the day progress bar (blue)
     progressContainerDay = new St.BoxLayout({
         style_class: 'progress-bar-container-day',
         x_expand: true,
@@ -48,7 +51,6 @@ function enable() {
         y_align: Clutter.ActorAlign.CENTER
     });
 
-    // Create the day progress bar fill element (blue)
     progressBarFillDay = new St.Widget({
         style_class: 'progress-bar-fill-day',
         x_expand: false,
@@ -56,10 +58,8 @@ function enable() {
         y_align: Clutter.ActorAlign.CENTER
     });
 
-    // Add the fill element to the day container
     progressContainerDay.add(progressBarFillDay);
 
-    // Create a label for the day progress bar
     labelDay = new St.Label({
         style_class: 'progress-label',
         text: '',
@@ -67,7 +67,6 @@ function enable() {
         y_align: Clutter.ActorAlign.CENTER
     });
 
-    // Create a box to hold both progress bars and their labels
     let progressBox = new St.BoxLayout({ vertical: true, style_class: 'progress-box' });
     let periodBox = new St.BoxLayout({ vertical: false });
     periodBox.add(progressContainerPeriod);
@@ -79,44 +78,42 @@ function enable() {
     progressBox.add(periodBox);
     progressBox.add(dayBox);
 
-    // Add the box to the panel button
     progressBar.actor.add_child(progressBox);
 
-    // Add the panel button to the status area
     Main.panel.addToStatusArea('progress-bars', progressBar);
 
-    let MenuItem;
     dayPhases.forEach((phase) => {
-        MenuItem = new PopupMenu.PopupMenuItem('Set ' + phase);
+        let MenuItem = new PopupMenu.PopupMenuItem('Set ' + phase);
         MenuItem.connect('activate', () => {
             initializeDayTimer(phase);
         });
         progressBar.menu.addMenuItem(MenuItem);
     });
 
-    // Initialize the progress update
-    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
+    updateTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
         updateProgress();
-        return true; // Repeat timeout
+        return true;
     });
 
-    // Initialize the day timer
     initializeDayTimer('workday');
 }
 
 function disable() {
+    if (updateTimeoutId !== null) {
+        GLib.source_remove(updateTimeoutId);
+        updateTimeoutId = null;
+    }
     if (progressBar) {
         progressBar.destroy();
         progressBar = null;
     }
+    progressContainerPeriod = null;
+    progressBarFillPeriod = null;
+    labelPeriod = null;
+    progressContainerDay = null;
+    progressBarFillDay = null;
+    labelDay = null;
 }
-
-let dayPhases = ['workday', 'day', 'soiree'];
-let phaseTimes = {
-    'workday': { start: [9, 0], end: [17, 45] },
-    'day': { start: [6, 0], end: [23, 30] },
-    'soiree': { start: [18, 0], end: [23, 30] }
-};
 
 function initializeDayTimer(phase) {
     if (!phaseTimes.hasOwnProperty(phase)) {
@@ -124,9 +121,10 @@ function initializeDayTimer(phase) {
         return;
     }
 
+    currentPhase = phase;
     let now = new Date();
     tsBeginDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), phaseTimes[phase].start[0], phaseTimes[phase].start[1], 0);
-    tsEndDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), phaseTimes[phase].end[0], phaseTimes[phase].end[1], 0);
+    tsEndDay   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), phaseTimes[phase].end[0],   phaseTimes[phase].end[1],   0);
     log(`Timer initialized for ${phase}: Start at ${tsBeginDay}, End at ${tsEndDay}`);
 }
 
@@ -136,54 +134,32 @@ function updateProgress() {
     let minutes = now.getMinutes();
     let hours = now.getHours();
 
-    // Calculate progress for the period as a percentage of 30 minutes (1800 seconds)
+    // Barre rouge : avancement dans la demi-heure en cours
     let elapsedPeriod = (hours * 3600) + (minutes * 60) + seconds;
-    let periodStart = Math.floor(elapsedPeriod / 1800) * 1800; // Nearest lower 30-minute mark
+    let periodStart = Math.floor(elapsedPeriod / 1800) * 1800;
     let percentagePeriod = ((elapsedPeriod - periodStart) / 1800) * 100;
 
+    if (progressBarFillPeriod)
+        progressBarFillPeriod.set_style(`width: ${percentagePeriod.toFixed(1)}%;`);
 
-    // Update the width of the period progress bar (red)
-    if (progressContainerPeriod && progressBarFillPeriod) {
-        let width = progressContainerPeriod.width;
-        let height = progressContainerPeriod.height;
-        let progressWidthPeriod = Math.round(width * (percentagePeriod / 100));
-        progressBarFillPeriod.set_size(progressWidthPeriod, height);
-    }
-    //let progressWidthPeriod = Math.round(progressContainerPeriod.width * (percentagePeriod / 100));
-    //progressBarFillPeriod.set_size(progressWidthPeriod, progressContainerPeriod.height);
-
-    // Calculate remaining minutes for the period
     let remainingSecondsPeriod = 1800 - (elapsedPeriod - periodStart);
-    let remainingMinutesPeriod = Math.floor(remainingSecondsPeriod / 60);
-    labelPeriod.set_text(`${remainingMinutesPeriod}mn`);
-    //log(`Period progress: ${percentagePeriod}% - Reste ${remainingMinutesPeriod} minutes`);
+    labelPeriod.set_text(`${Math.floor(remainingSecondsPeriod / 60)}mn`);
 
-    // Calculate progress for the day as a percentage of the total day
+    // Barre bleue : avancement dans la phase journée
     let elapsedDay = now - tsBeginDay;
     let totalDay = tsEndDay - tsBeginDay;
-    let percentageDay = (elapsedDay / totalDay) * 100;
-    if (percentageDay > 100) percentageDay = 100;
+    let percentageDay = Math.min(100, Math.max(0, (elapsedDay / totalDay) * 100));
 
-    // Update the width of the day progress bar (blue)
-    if (progressContainerDay && progressBarFillDay) {
-        let width = progressContainerDay.width;
-        let height = progressContainerDay.height;
-    
-        let progressWidthDay = Math.round(width * (percentageDay / 100));
-        progressBarFillDay.set_size(progressWidthDay, height);
-    }
+    if (progressBarFillDay)
+        progressBarFillDay.set_style(`width: ${percentageDay.toFixed(1)}%;`);
 
-    //let progressWidthDay = Math.round(progressContainerDay.width * (percentageDay / 100));
-    //progressBarFillDay.set_size(progressWidthDay, progressContainerDay.height);
-
-    // Update the tooltip for the day progress bar
+    let phaseLabel = phaseTimes[currentPhase].label;
     let remainingTimeDay = totalDay - elapsedDay;
-    let remainingHoursDay = Math.floor(remainingTimeDay / 3600000);
-    let remainingMinutesDay = Math.floor((remainingTimeDay % 3600000) / 60000);
-    if (remainingHoursDay < 0) {
-        remainingHoursDay = 0;
-        remainingMinutesDay = 0;
+    if (remainingTimeDay <= 0) {
+        labelDay.set_text(`${phaseLabel} fin`);
+    } else {
+        let remainingHours = Math.floor(remainingTimeDay / 3600000);
+        let remainingMins  = Math.floor((remainingTimeDay % 3600000) / 60000);
+        labelDay.set_text(`${phaseLabel} ${remainingHours}h${remainingMins.toString().padStart(2, '0')}`);
     }
-    labelDay.set_text(`${remainingHoursDay}h${remainingMinutesDay.toString().padStart(2, '0')}`);
-    //log(`Day progress: ${percentageDay}% - Reste ${remainingHoursDay} heures et ${remainingMinutesDay} minutes`);
 }
